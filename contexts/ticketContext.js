@@ -6,12 +6,13 @@ const TicketContext = React.createContext({
 	getTicketGroupByCode: async (ticketGroupCode) => {},
 	generateTicket: async (ticketGroupCode) => {},
 	getCurrentTicket: async () => {},
+	errorState: { error: false, code: null, msg: null },
 });
 
 const TicketContextProvider = (props) => {
 	const [errorState, setErrorState] = React.useState({ error: false, code: null, msg: null });
 	const [accessToken, setAccessToken] = React.useState(null);
-	const http = useContextHttp(accessToken);
+	const http = useContextHttp();
 
 	const getTicketGroupByCode = async (ticketGroupCode) => {
 		const response = await http.post("queue/ticket/group_by_code", { ticket_group_code: ticketGroupCode });
@@ -20,19 +21,18 @@ const TicketContextProvider = (props) => {
 		return content;
 	};
 	const generateTicket = async (ticketGroupCode) => {
-        const response = await http.post("queue/ticket/generate", { ticket_group_code: ticketGroupCode });
+		const response = await http.post("queue/ticket/generate", { ticket_group_code: ticketGroupCode });
 		const [status, content, err] = await httpResponseHandler(response);
 		if (status === false) return false;
 		return content;
-    };
+	};
 
-    
 	const getCurrentTicket = async () => {
-        const response = await http.get("queue/ticket/my");
-        const [status, content, err] = await httpResponseHandler(response);
+		const response = await http.get("queue/ticket/my");
+		const [status, content, err] = await httpResponseHandler(response);
 		if (status === false) return false;
 		return content;
-    };
+	};
 
 	const httpResponseHandler = async (response) => {
 		if (!response.ok) {
@@ -42,11 +42,13 @@ const TicketContextProvider = (props) => {
 			return [false, null, err];
 		}
 
-		const content = response.json();
-		if (!content) {
+        let content = null;
+		try {
+			content = await response.json();
+		} catch (error) {
 			const err = { error: true, code: 0, msg: "No Content" };
 			setErrorState(err);
-			console.log(response);
+			console.log(response, error);
 			return [false, null, err];
 		}
 
@@ -54,26 +56,37 @@ const TicketContextProvider = (props) => {
 			const err = { error: true, code: content.status, msg: content.message };
 			setErrorState(err);
 			console.log(content);
-			return [false, content, err];
+			return [false, content.data, err];
 		}
 
 		setErrorState({ ...errorState, error: false });
-		return [true, content, null];
+		return [true, content.data, null];
 	};
+
+	React.useEffect(() => {
+		if (http.accessToken != accessToken) {
+			http.setAccessToken((prevState) => {
+				if (prevState != accessToken) {
+					console.log("Ticket Context AccessToken Change", accessToken);
+					return accessToken;
+				}
+			});
+		}
+	}, [accessToken, http]);
 
 	const contextValue = {
 		setAccessToken,
 		getTicketGroupByCode,
 		generateTicket,
 		getCurrentTicket,
+		errorState,
 	};
+
 	return <TicketContext.Provider value={contextValue}>{props.children}</TicketContext.Provider>;
 };
 
 export default TicketContextProvider;
 
-export const useContextTicket = (accessToken) => {
-	const ctx = React.useContext(TicketContext);
-	if (typeof accessToken != "undefined") ctx.setAccessToken(accessToken);
-	return ctx;
+export const useContextTicket = () => {
+	return React.useContext(TicketContext);
 };

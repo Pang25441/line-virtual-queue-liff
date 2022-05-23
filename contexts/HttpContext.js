@@ -12,7 +12,7 @@ export const HttpContext = React.createContext({
 	getBase: async (uri) => {},
 });
 
-const FETCH_OPTION = { method: "get", mode: "cors", credentials: "include" };
+const FETCH_OPTION = { method: "get", mode: "cors", credentials: "omit" };
 const HTTP_HEADER = { Accept: "application/json", "Content-Type": "application/json" };
 
 const HttpContextProvider = (props) => {
@@ -29,7 +29,7 @@ const HttpContextProvider = (props) => {
 			if (accessToken) {
 				return { ...prevState, Authorization: "Bearer " + accessToken };
 			} else {
-				return HTTP_HEADER;
+				return { ...HTTP_HEADER };
 			}
 		});
 	}, [accessToken]);
@@ -52,7 +52,8 @@ const HttpContextProvider = (props) => {
 	const postRequest = async (uri, body) => {
 		try {
 			const data = body ? body : {};
-			const response = await fetch(endpoint + uri, data, { ...CONFIG, method: "post", body: JSON.stringify(data) });
+			const request = new Request(endpoint + uri, { ...CONFIG, method: "post", body: JSON.stringify(data) });
+			const response = await fetch(request);
 			return response;
 		} catch (error) {
 			return error;
@@ -61,7 +62,8 @@ const HttpContextProvider = (props) => {
 	const putRequest = async (uri, body) => {
 		try {
 			const data = body ? body : {};
-			const response = await fetch(endpoint + uri, data, { ...CONFIG, method: "put", body: JSON.stringify(data) });
+			const request = new Request(endpoint + uri, { ...CONFIG, method: "put", body: JSON.stringify(data) });
+			const response = await fetch(request);
 			return response;
 		} catch (error) {
 			return error;
@@ -69,7 +71,8 @@ const HttpContextProvider = (props) => {
 	};
 	const deleleRequest = async (uri) => {
 		try {
-			const response = await fetch(endpoint + uri, { ...CONFIG, method: "delete" });
+			const request = new Request(endpoint + uri, { ...CONFIG, method: "delete" });
+			const response = await fetch(request);
 			return response;
 		} catch (error) {
 			return error;
@@ -101,8 +104,6 @@ const HttpContextProvider = (props) => {
 
 export default HttpContextProvider;
 
-export const useContextHttp = (accessToken) => {
-	const context = React.useContext(HttpContext);
-	if (typeof accessToken != "undefined") context.setAccessToken(accessToken);
-	return context;
+export const useContextHttp = () => {
+	return React.useContext(HttpContext);
 };

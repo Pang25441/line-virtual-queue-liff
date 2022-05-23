@@ -3,18 +3,30 @@ import HttpContextProvider from "../contexts/HttpContext";
 import { Provider } from "react-redux";
 import "../styles/globals.css";
 import store from "../store/store";
+import { SnackbarProvider } from "notistack";
+import TicketContextProvider from "../contexts/ticketContext";
 
-const theme = createTheme({ palette: { mode: "light" } });
+const theme = createTheme({ palette: { mode: "light" }, typography: { fontFamily: "Kanit" } });
 
 function MyApp({ Component, pageProps }) {
 	return (
 		<ThemeProvider theme={theme}>
 			<CssBaseline />
-			<HttpContextProvider>
-				<Provider store={store}>
-					<Component {...pageProps} />
-				</Provider>
-			</HttpContextProvider>
+			<SnackbarProvider
+				maxSnack={5}
+				anchorOrigin={{
+					vertical: "bottom",
+					horizontal: "center",
+				}}
+			>
+				<HttpContextProvider>
+					<TicketContextProvider>
+						<Provider store={store}>
+							<Component {...pageProps} />
+						</Provider>
+					</TicketContextProvider>
+				</HttpContextProvider>
+			</SnackbarProvider>
 		</ThemeProvider>
 	);
 }
