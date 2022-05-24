@@ -16,9 +16,9 @@ export default function GetTicketPage(props) {
 	const [liffState, liffDispatch] = LiffReducer();
 
 	const ticketState = useSelector((state) => state.ticket);
-	const dispatch = useDispatch();
+	// const dispatch = useDispatch();
 
-	const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+	// const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
 	const ticketContext = useContextTicket();
 
@@ -88,10 +88,10 @@ export default function GetTicketPage(props) {
 			{!ticketState.selectedTicketGroup && <GetTicketLanding liffState={liffState} />}
 
 			{/* Confirm Ticket */}
-			{ticketState.selectedTicketGroup && <GetTicketConfirm liffState={liffState} />}
+			{(ticketState.selectedTicketGroup && !ticketState.ticket) && <GetTicketConfirm />}
 
 			{/* Ticket Result */}
-			{ticketState.ticket && <GetTicketSuccess liff={liffState.liff} />}
+			{ticketState.ticket && <GetTicketSuccess liffState={liffState} ticket={ticketState.ticket} />}
 		</Fragment>
 	);
 }

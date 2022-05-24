@@ -75,9 +75,10 @@ const GetTicketLanding = (props) => {
 				</Typography>
 			</Box>
 			{error.error && (
-				<Box sx={{ mt: 6 }}>
+				<Box sx={{ mt: 4 }}>
 					<Alert severity="error">
 						{error.message}
+                        <br/>
 						{ticketContext.errorState.error && ticketContext.errorState.msg}
 					</Alert>
 				</Box>

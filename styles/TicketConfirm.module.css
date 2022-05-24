@@ -1,0 +1,5 @@
+.grid-border {
+    border: solid 1px gray;
+    background-color: beige;
+    padding: 15px;
+}
