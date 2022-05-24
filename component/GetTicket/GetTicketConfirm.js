@@ -83,7 +83,7 @@ const GetTicketConfirm = (props) => {
 								Waiting Queue
 							</Typography>
 							<Typography component="p" variant="body1">
-								{selectedTicketGroup.waiting_queue || 0}
+								{selectedTicketGroup.waiting_count}
 							</Typography>
 						</Grid>
 					</Grid>
