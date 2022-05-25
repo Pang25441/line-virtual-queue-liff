@@ -1,11 +1,13 @@
-import { Alert, Box, Button, Container, Typography } from "@mui/material";
-import { useState } from "react";
+import { Alert, Box, Button, CircularProgress, Container, Typography } from "@mui/material";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { loadingTicketGroup, setTicketGroup, setTicketGroupCode } from "../../store/ticketSlice";
+import { loadingTicketGroup, setTicket, setTicketGroup, setTicketGroupCode } from "../../store/ticketSlice";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import InfoIcon from "@mui/icons-material/Info";
 import { useSnackbar } from "notistack";
 import { useContextTicket } from "../../contexts/ticketContext";
+import { useContextLang } from "../../contexts/LangContext";
+import LangChanger from "../langChanger";
 
 const GetTicketLanding = (props) => {
 	const [error, setError] = useState({ error: false, message: "" });
@@ -16,6 +18,7 @@ const GetTicketLanding = (props) => {
 	const liff = liffState.liff;
 	const ticketState = useSelector((state) => state.ticket);
 	const ticketContext = useContextTicket();
+	const lang = useContextLang();
 
 	const fetchTicketGroup = async (ticketGroupCode) => {
 		console.log("fetchTicketGroup ", ticketGroupCode);
@@ -23,12 +26,14 @@ const GetTicketLanding = (props) => {
 		const snackKey = enqueueSnackbar("Loading information", { variant: "default" });
 		dispatch(loadingTicketGroup());
 		const ticketGroup = await ticketContext.getTicketGroupByCode(ticketGroupCode);
-		console.log(ticketGroup);
+		// console.log(ticketGroup);
 		dispatch(setTicketGroup({ ticketGroup: ticketGroup || null }));
 		closeSnackbar(snackKey);
 		if (!ticketGroup) {
-			enqueueSnackbar("Data not found", { variant: "error" });
 			setError({ error: true, message: "Data not found" });
+		}
+		if (ticketGroup.exist_ticket) {
+			dispatch(setTicket({ ticket: ticketGroup.exist_ticket }));
 		}
 		return ticketGroup;
 	};
@@ -39,13 +44,19 @@ const GetTicketLanding = (props) => {
 
 		if (typeof liff == "undefined") return false;
 
+		dispatch(loadingTicketGroup());
+
 		try {
 			liff.scanCodeV2().then((result) => {
 				// result = { value: "" }
 				const ticketGroupCode = result.value;
+				if (!ticketGroupCode) {
+					dispatch(setTicketGroupCode({ ticketGroupCode: null }));
+					return;
+				}
 				dispatch(setTicketGroupCode({ ticketGroupCode }));
 				fetchTicketGroup(ticketGroupCode).then((result) => {
-					console.log("Scan code Result ", result);
+					// console.log("Scan code Result ", result);
 				});
 			});
 		} catch (error) {
@@ -64,9 +75,18 @@ const GetTicketLanding = (props) => {
 		}
 	};
 
+	useEffect(() => {
+		if (error.error && ticketContext.errorState.error) {
+			enqueueSnackbar(lang.ticket?.error[ticketContext.errorState.code], { variant: "error", autoHideDuration: 5000 });
+			setError((prevState) => {
+				return { ...prevState, message: lang.ticket?.error[ticketContext.errorState.code] };
+			});
+		}
+	}, [enqueueSnackbar, error.error, lang.ticket?.error, ticketContext.errorState.code, ticketContext.errorState.error]);
+
 	return (
-		<Container maxWidth="xs" sx={{ textAlign: "center" }}>
-			<Box sx={{ mt: 6 }}>
+		<Container maxWidth="xs" sx={{ textAlign: "center", py: 1 }}>
+			<Box sx={{ mt: 0 }}>
 				<Typography component="h1" variant="h1" sx={{ fontWeight: "bold" }}>
 					LVQ
 				</Typography>
@@ -76,31 +96,37 @@ const GetTicketLanding = (props) => {
 			</Box>
 			{error.error && (
 				<Box sx={{ mt: 4 }}>
-					<Alert severity="error">
-						{error.message}
-                        <br/>
-						{ticketContext.errorState.error && ticketContext.errorState.msg}
-					</Alert>
+					<Alert severity="error">{error.message}</Alert>
 				</Box>
 			)}
 			<Box sx={{ mt: 6 }}>
-				<Button onClick={scanCodeHandler} disabled={ticketState.loadingTicketGroup} color="success" variant="contained" size="large" sx={{ py: 2 }} fullWidth>
+				<Button onClick={scanCodeHandler} disabled={ticketState.loadingTicketGroup} color="primary" variant="contained" size="large" sx={{ py: 2 }} fullWidth>
 					<Typography component="div">
+						{ticketState.loadingTicketGroup && (
+							<>
+								<CircularProgress />
+								<br />
+							</>
+						)}
 						<QrCodeScannerIcon fontSize="large" />
 						<br />
-						Get Queue
+						{lang.ticket?.label?.scanCode || "Scan Code"}
 					</Typography>
 				</Button>
 			</Box>
 			<Typography component="p" variant="subtitle1" color="gray">
-				<InfoIcon fontSize="inherit" /> Scan QR Code to get queue ticket
+				<InfoIcon fontSize="inherit" /> {lang.ticket?.message?.scanCodeInfo || "Scan QR Code to get queue ticket"}
 			</Typography>
 
 			<Box sx={{ mt: 6 }}>
-				<Button onClick={closeHandler} sx={{ py: 2 }} color="error" variant="contained" size="large" fullWidth>
-					Close
-				</Button>
+				{!ticketState.loadingTicketGroup && (
+					<Button onClick={closeHandler} sx={{ py: 2, fontWeight: "bold" }} color="error" variant="contained" size="large" fullWidth>
+						{lang.ticket?.label?.close || "Close"}
+					</Button>
+				)}
 			</Box>
+
+			<Box sx={{}}></Box>
 		</Container>
 	);
 };

@@ -38,7 +38,7 @@ const TicketContextProvider = (props) => {
 		if (!response.ok) {
 			const err = { error: true, code: 0, msg: "HTTP Error " + response.status };
 			setErrorState(err);
-			console.log(response);
+			// console.log(response);
 			return [false, null, err];
 		}
 
@@ -48,14 +48,14 @@ const TicketContextProvider = (props) => {
 		} catch (error) {
 			const err = { error: true, code: 0, msg: "No Content" };
 			setErrorState(err);
-			console.log(response, error);
+			// console.log(response, error);
 			return [false, null, err];
 		}
 
 		if (content.status != 200) {
-			const err = { error: true, code: content.status, msg: content.message };
+			const err = { error: true, code: content.data.error, msg: content.message };
 			setErrorState(err);
-			console.log(content);
+			// console.log(content);
 			return [false, content.data, err];
 		}
 
@@ -67,7 +67,7 @@ const TicketContextProvider = (props) => {
 		if (http.accessToken != accessToken) {
 			http.setAccessToken((prevState) => {
 				if (prevState != accessToken) {
-					console.log("Ticket Context AccessToken Change", accessToken);
+					// console.log("Ticket Context AccessToken Change", accessToken);
 					return accessToken;
 				}
 			});

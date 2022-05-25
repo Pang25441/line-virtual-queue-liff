@@ -1,23 +1,26 @@
 import { Box, Button, CircularProgress, Container, Divider, Grid, Typography } from "@mui/material";
+import { useContextLang } from "../../contexts/LangContext";
 import Styles from "../../styles/TicketConfirm.module.css";
 
 const GetTicketSuccess = (props) => {
-	const { ticket,liffState } = props;
+	const { ticket, liffState } = props;
 
-    const liff =liffState.liff;
+	const liff = liffState.liff;
 
-    const closeAppHandler = (event)=>{
-        event.preventDefault();
+	const lang = useContextLang();
+
+	const closeAppHandler = (event) => {
+		event.preventDefault();
 		if (typeof liff == "undefined") return false;
 		try {
 			liff.closeWindow();
 		} catch (error) {
 			setError({ error: true, message: "Application not initialized" });
 		}
-    }
+	};
 
 	return (
-		<Container maxWidth="xs" sx={{ textAlign: "center" }}>
+		<Container maxWidth="xs" sx={{ textAlign: "center", py: 1 }}>
 			<Box sx={{ mt: 0 }}>
 				<Typography component="h1" variant="h1" sx={{ fontWeight: "bold" }}>
 					LVQ
@@ -47,17 +50,21 @@ const GetTicketSuccess = (props) => {
 					</Box>
 				</>
 			)}
-            {!ticket && <>
-				<Box sx={{ mt: 6 }}>
-					<Box sx={{ display: "flex", alignContent: "center", justifyContent: "center", my: 3 }}>
-						<CircularProgress size={60} thickness={5} />
+			{!ticket && (
+				<>
+					<Box sx={{ mt: 6 }}>
+						<Box sx={{ display: "flex", alignContent: "center", justifyContent: "center", my: 3 }}>
+							<CircularProgress size={60} thickness={5} />
+						</Box>
 					</Box>
-				</Box>
-			</>}
+				</>
+			)}
 
-            <Box sx={{ mt: 6 }}>
-                <Button onClick={closeAppHandler} sx={{py:2}} color="success" variant="contained" fullWidth>Close</Button>
-            </Box>
+			<Box sx={{ mt: 6 }}>
+				<Button onClick={closeAppHandler} sx={{ py: 2 }} color="success" variant="contained" fullWidth>
+					{lang.ticket?.label?.close || "Close"}
+				</Button>
+			</Box>
 		</Container>
 	);
 };

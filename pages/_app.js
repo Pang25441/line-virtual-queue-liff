@@ -5,6 +5,7 @@ import "../styles/globals.css";
 import store from "../store/store";
 import { SnackbarProvider } from "notistack";
 import TicketContextProvider from "../contexts/ticketContext";
+import LangContextProvider from "../contexts/LangContext";
 
 const theme = createTheme({ palette: { mode: "light" }, typography: { fontFamily: "Kanit" } });
 
@@ -19,13 +20,15 @@ function MyApp({ Component, pageProps }) {
 					horizontal: "center",
 				}}
 			>
-				<HttpContextProvider>
-					<TicketContextProvider>
-						<Provider store={store}>
-							<Component {...pageProps} />
-						</Provider>
-					</TicketContextProvider>
-				</HttpContextProvider>
+				<LangContextProvider>
+					<HttpContextProvider>
+						<TicketContextProvider>
+							<Provider store={store}>
+								<Component {...pageProps} />
+							</Provider>
+						</TicketContextProvider>
+					</HttpContextProvider>
+				</LangContextProvider>
 			</SnackbarProvider>
 		</ThemeProvider>
 	);
